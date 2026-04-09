@@ -365,6 +365,16 @@ function selectLocation<ResultType extends {
   );
 
   if (exactCityMatches.length > 0) {
+    const exactStateMatches = exactCityMatches.filter((item) => isStateMatch(item, query.state));
+    if (exactStateMatches.length > 0) {
+      return selectBestMatch(exactStateMatches, query, normalizedCityVariants);
+    }
+
+    const exactCountryMatches = exactCityMatches.filter((item) => isCountryMatch(item, query.country));
+    if (exactCountryMatches.length > 0) {
+      return selectBestMatch(exactCountryMatches, query, normalizedCityVariants);
+    }
+
     return selectBestMatch(exactCityMatches, query, normalizedCityVariants);
   }
 
@@ -375,9 +385,39 @@ function selectLocation<ResultType extends {
     )
   );
 
-  return partialCityMatches.length > 0
-    ? selectBestMatch(partialCityMatches, query, normalizedCityVariants)
-    : null;
+  if (partialCityMatches.length > 0) {
+    const partialStateMatches = partialCityMatches.filter((item) => isStateMatch(item, query.state));
+    if (partialStateMatches.length > 0) {
+      return selectBestMatch(partialStateMatches, query, normalizedCityVariants);
+    }
+
+    const partialCountryMatches = partialCityMatches.filter((item) => isCountryMatch(item, query.country));
+    if (partialCountryMatches.length > 0) {
+      return selectBestMatch(partialCountryMatches, query, normalizedCityVariants);
+    }
+
+    return selectBestMatch(partialCityMatches, query, normalizedCityVariants);
+  }
+
+  return null;
+}
+
+function isCountryMatch<ResultType extends { country: string; country_code?: string }>(item: ResultType, country?: string): boolean {
+  if (!country) return false;
+  return (
+    item.country_code?.toUpperCase() === country.toUpperCase() ||
+    matchesFilter(item.country, country)
+  );
+}
+
+function isStateMatch<ResultType extends { admin1?: string }>(item: ResultType, state?: string): boolean {
+  if (!state) return false;
+  const normalizedState = normalizeText(state);
+  const expandedState = expandStateAbbrev(state) || state;
+  return (
+    matchesFilter(item.admin1, normalizedState) ||
+    matchesFilter(item.admin1, expandedState)
+  );
 }
 
 function getLocationScore<ResultType extends {
@@ -394,18 +434,12 @@ function getLocationScore<ResultType extends {
     normalizedName.includes(variant) || variant.includes(normalizedName)
   );
 
-  const countryMatch = query.country
-    ? item.country_code?.toUpperCase() === query.country.toUpperCase() ||
-      matchesFilter(item.country, query.country)
-    : false;
-  const stateMatch = query.state
-    ? matchesFilter(item.admin1, query.state) ||
-      matchesFilter(item.admin1, expandStateAbbrev(query.state!))
-    : false;
+  const countryMatch = isCountryMatch(item, query.country);
+  const stateMatch = isStateMatch(item, query.state);
 
   let score = 0;
   if (countryMatch) score += 400;
-  if (stateMatch) score += 300;
+  if (stateMatch) score += 350;
   if (exactName) score += 250;
   else if (partialName) score += 120;
   if (item.feature_code === 'PPLC') score += 180;
