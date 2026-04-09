@@ -28,6 +28,12 @@ function matchesFilter(value: string | undefined, filter?: string): boolean {
 }
 
 function normalizeCountry(country: string): string {
+  const upper = country.trim().toUpperCase();
+  if (upper.length === 2) {
+    return upper === 'UK' ? 'GB' : upper;
+  }
+
+  const normalized = normalizeText(country);
   const mappings: Record<string, string> = {
     'eua': 'US',
     'estados unidos': 'US',
@@ -48,6 +54,7 @@ function normalizeCountry(country: string): string {
     'china': 'CN',
     'reino unido': 'GB',
     'united kingdom': 'GB',
+    'inglaterra': 'GB',
     'uk': 'GB',
     'canadá': 'CA',
     'canada': 'CA',
@@ -57,7 +64,6 @@ function normalizeCountry(country: string): string {
     'austrália': 'AU',
     'australia': 'AU',
     'portugal': 'PT',
-    'pt': 'PT',
     'holanda': 'NL',
     'netherlands': 'NL',
     'belgica': 'BE',
@@ -123,12 +129,30 @@ function normalizeCountry(country: string): string {
     'republica dominicana': 'DO',
     'dominican republic': 'DO',
     'jamaica': 'JM',
+    'irlanda': 'IE',
+    'ireland': 'IE',
+    'suica': 'CH',
+    'switzerland': 'CH',
+    'austria': 'AT',
+    'argélia': 'DZ',
+    'algeria': 'DZ',
   };
-  const normalized = normalizeText(country);
   return mappings[normalized] || country;
 }
 
+function removeDiacritics(value: string): string {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+}
+
 function getCityTranslations(city: string): string[] {
+  const normalized = normalizeText(city);
+  const ascii = removeDiacritics(normalized);
+  const variants = [normalized];
+
+  if (ascii !== normalized) {
+    variants.push(ascii);
+  }
+
   const translations: Record<string, string[]> = {
     'lisboa': ['lisbon', 'lisboa'],
     'lisbon': ['lisbon', 'lisboa'],
@@ -139,60 +163,36 @@ function getCityTranslations(city: string): string[] {
     'new york': ['new york', 'nova york'],
     'londres': ['london', 'londres'],
     'london': ['london', 'londres'],
-    'paris': ['paris', 'paris'],
     'roma': ['rome', 'roma'],
     'rome': ['rome', 'roma'],
-    'madrid': ['madrid', 'madrid'],
     'berlim': ['berlin', 'berlim'],
     'berlin': ['berlin', 'berlim'],
-    'tokyo': ['tokyo', 'tóquio'],
     'tóquio': ['tokyo', 'tóquio'],
+    'tokyo': ['tokyo', 'tóquio'],
     'pequim': ['beijing', 'pequim'],
     'beijing': ['beijing', 'pequim'],
-    'moscou': ['moscow', 'moscou'],
-    'moscow': ['moscow', 'moscou'],
-    'sydney': ['sydney', 'sydney'],
-    'cidade do cabo': ['cape town', 'cidade do cabo'],
-    'cape town': ['cape town', 'cidade do cabo'],
-    'cairo': ['cairo', 'cairo'],
-    'mumbai': ['mumbai', 'bombaim'],
     'bombaim': ['mumbai', 'bombaim'],
-    'bangalore': ['bangalore', 'bangalore'],
-    'shanghai': ['shanghai', 'xangai'],
+    'mumbai': ['mumbai', 'bombaim'],
     'xangai': ['shanghai', 'xangai'],
-    'hong kong': ['hong kong', 'hong kong'],
-    'singapore': ['singapore', 'singapura'],
+    'shanghai': ['shanghai', 'xangai'],
     'singapura': ['singapore', 'singapura'],
-    'bangkok': ['bangkok', 'banguecoque'],
+    'singapore': ['singapore', 'singapura'],
     'banguecoque': ['bangkok', 'banguecoque'],
-    'dublin': ['dublin', 'dublin'],
-    'amsterdam': ['amsterdam', 'amsterdã'],
+    'bangkok': ['bangkok', 'banguecoque'],
     'amsterdã': ['amsterdam', 'amsterdã'],
-    'vienna': ['vienna', 'viena'],
+    'amsterdam': ['amsterdam', 'amsterdã'],
     'viena': ['vienna', 'viena'],
-    'prague': ['prague', 'praga'],
+    'vienna': ['vienna', 'viena'],
     'praga': ['prague', 'praga'],
-    'budapest': ['budapest', 'budapeste'],
+    'prague': ['prague', 'praga'],
     'budapeste': ['budapest', 'budapeste'],
-    'warsaw': ['warsaw', 'varsóvia'],
-    'varsóvia': ['warsaw', 'varsóvia'],
-    'bucharest': ['bucharest', 'bucareste'],
-    'bucareste': ['bucharest', 'bucareste'],
-    'sofia': ['sofia', 'sofia'],
-    'belgrade': ['belgrade', 'belgrado'],
-    'belgrado': ['belgrade', 'belgrado'],
-    'zagreb': ['zagreb', 'zagreb'],
-    'sarajevo': ['sarajevo', 'sarajevo'],
-    'skopje': ['skopje', 'escópia'],
-    'escópia': ['skopje', 'escópia'],
-    'tirana': ['tirana', 'tirana'],
-    'podgorica': ['podgorica', 'podgorica'],
-    'pristina': ['pristina', 'prístina'],
-    'prístina': ['pristina', 'prístina'],
+    'budapest': ['budapest', 'budapeste'],
   };
 
-  const normalized = normalizeText(city);
-  return translations[normalized] || [city];
+  const mapped = translations[normalized] || translations[ascii] || [];
+  variants.push(...mapped);
+
+  return Array.from(new Set(variants));
 }
 
 function normalizeState(state: string): string {
@@ -355,29 +355,72 @@ function selectLocation<ResultType extends {
   latitude: number;
   longitude: number;
   timezone: string;
+  population?: number;
+  feature_code?: string;
 }>(results: ResultType[], query: WeatherQuery, cityVariants: string[]): ResultType | null {
   const normalizedCityVariants = cityVariants.map(normalizeText);
 
-  // Primeiro, filtra apenas cidades com nome exato ou traduções exatas
   const exactCityMatches = results.filter((item) =>
     normalizedCityVariants.includes(normalizeText(item.name))
   );
 
-  if (exactCityMatches.length === 0) {
-    // Se não encontrou cidade exata, tenta busca parcial com variantes
-    const partialCityMatches = results.filter((item) =>
-      normalizedCityVariants.some((variant) =>
-        normalizeText(item.name).includes(variant) ||
-        variant.includes(normalizeText(item.name))
-      )
-    );
-    if (partialCityMatches.length > 0) {
-      return selectBestMatch(partialCityMatches, query);
-    }
-    return null;
+  if (exactCityMatches.length > 0) {
+    return selectBestMatch(exactCityMatches, query, normalizedCityVariants);
   }
 
-  return selectBestMatch(exactCityMatches, query);
+  const partialCityMatches = results.filter((item) =>
+    normalizedCityVariants.some((variant) =>
+      normalizeText(item.name).includes(variant) ||
+      variant.includes(normalizeText(item.name))
+    )
+  );
+
+  return partialCityMatches.length > 0
+    ? selectBestMatch(partialCityMatches, query, normalizedCityVariants)
+    : null;
+}
+
+function getLocationScore<ResultType extends {
+  name: string;
+  country: string;
+  country_code?: string;
+  admin1?: string;
+  population?: number;
+  feature_code?: string;
+}>(item: ResultType, query: WeatherQuery, normalizedCityVariants: string[]): number {
+  const normalizedName = normalizeText(item.name);
+  const exactName = normalizedCityVariants.includes(normalizedName);
+  const partialName = normalizedCityVariants.some((variant) =>
+    normalizedName.includes(variant) || variant.includes(normalizedName)
+  );
+
+  const countryMatch = query.country
+    ? item.country_code?.toUpperCase() === query.country.toUpperCase() ||
+      matchesFilter(item.country, query.country)
+    : false;
+  const stateMatch = query.state
+    ? matchesFilter(item.admin1, query.state) ||
+      matchesFilter(item.admin1, expandStateAbbrev(query.state!))
+    : false;
+
+  let score = 0;
+  if (countryMatch) score += 400;
+  if (stateMatch) score += 300;
+  if (exactName) score += 250;
+  else if (partialName) score += 120;
+  if (item.feature_code === 'PPLC') score += 180;
+  if (item.feature_code === 'PPLA') score += 120;
+  if (item.feature_code === 'PPLA2') score += 90;
+  if (item.population) score += Math.log10(item.population + 1) * 10;
+
+  if (!query.country && !query.state && item.country_code) {
+    const priorityCountries = ['PT', 'BR', 'US', 'ES', 'FR', 'GB', 'DE', 'IT', 'CA', 'AU'];
+    if (priorityCountries.includes(item.country_code.toUpperCase())) {
+      score += 30;
+    }
+  }
+
+  return score;
 }
 
 function selectBestMatch<ResultType extends {
@@ -385,49 +428,14 @@ function selectBestMatch<ResultType extends {
   country: string;
   country_code?: string;
   admin1?: string;
-}>(candidates: ResultType[], query: WeatherQuery): ResultType | null {
-  // Prioriza por filtros fornecidos
-  const hasCountry = !!query.country;
-  const hasState = !!query.state;
+  population?: number;
+  feature_code?: string;
+}>(candidates: ResultType[], query: WeatherQuery, normalizedCityVariants: string[]): ResultType | null {
+  if (candidates.length === 0) return null;
 
-  // Caso 1: País E Estado fornecidos - match exato
-  if (hasCountry && hasState) {
-    const exactMatches = candidates.filter((item) => {
-      const countryMatch = item.country_code?.toUpperCase() === query.country!.toUpperCase() ||
-                          matchesFilter(item.country, query.country);
-      const stateMatch = matchesFilter(item.admin1, query.state) ||
-                        matchesFilter(item.admin1, expandStateAbbrev(query.state!));
-      return countryMatch && stateMatch;
-    });
-    if (exactMatches.length > 0) return exactMatches[0];
-  }
-
-  // Caso 2: Apenas País fornecido
-  if (hasCountry && !hasState) {
-    const countryMatches = candidates.filter((item) =>
-      item.country_code?.toUpperCase() === query.country!.toUpperCase() ||
-      matchesFilter(item.country, query.country)
-    );
-    if (countryMatches.length > 0) return countryMatches[0];
-  }
-
-  // Caso 3: Apenas Estado fornecido
-  if (!hasCountry && hasState) {
-    const stateMatches = candidates.filter((item) =>
-      matchesFilter(item.admin1, query.state) ||
-      matchesFilter(item.admin1, expandStateAbbrev(query.state!))
-    );
-    if (stateMatches.length > 0) return stateMatches[0];
-  }
-
-  // Caso 4: Nenhum filtro adicional - retorna a primeira opção
-  // Mas tenta priorizar países mais comuns/populosos
-  const priorityCountries = ['BR', 'US', 'PT', 'ES', 'FR', 'GB', 'DE', 'IT'];
-  const priorityMatch = candidates.find((item) =>
-    item.country_code && priorityCountries.includes(item.country_code.toUpperCase())
-  );
-
-  return priorityMatch || candidates[0];
+  return candidates
+    .map((item) => ({ item, score: getLocationScore(item, query, normalizedCityVariants) }))
+    .sort((a, b) => b.score - a.score)[0]?.item || null;
 }
 
 export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherData> {
@@ -441,7 +449,8 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
   // Try different translations of the city name
   const cityVariants = getCityTranslations(normalizedQuery.city);
   const admin1Filter = normalizedQuery.state ? expandStateAbbrev(normalizedQuery.state) || normalizedQuery.state : undefined;
-  let allResults: Array<{
+  const resultsByKey = new Map<string, {
+    id?: number;
     name: string;
     country: string;
     country_code?: string;
@@ -449,13 +458,34 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
     latitude: number;
     longitude: number;
     timezone: string;
-  }> = [];
+    population?: number;
+    feature_code?: string;
+  }>();
 
-  // Try each city variant until we find results
+  const addToResults = (item: {
+    id?: number;
+    name: string;
+    country: string;
+    country_code?: string;
+    admin1?: string;
+    latitude: number;
+    longitude: number;
+    timezone: string;
+    population?: number;
+    feature_code?: string;
+  }) => {
+    const key = item.id
+      ? `id:${item.id}`
+      : `${item.name}|${item.country_code || ''}|${item.admin1 || ''}|${item.latitude}|${item.longitude}`;
+    if (!resultsByKey.has(key)) {
+      resultsByKey.set(key, item);
+    }
+  };
+
   for (const cityVariant of cityVariants) {
     const params = new URLSearchParams({
       name: cityVariant,
-      count: '20',
+      count: '50',
       language: 'en',
       format: 'json'
     });
@@ -473,6 +503,7 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
     try {
       const geoData = await fetchJson<{
         results?: Array<{
+          id?: number;
           name: string;
           country: string;
           country_code?: string;
@@ -480,16 +511,58 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
           latitude: number;
           longitude: number;
           timezone: string;
+          population?: number;
+          feature_code?: string;
         }>;
       }>(geocodeUrl);
 
       if (geoData.results && geoData.results.length > 0) {
-        allResults = allResults.concat(geoData.results);
+        geoData.results.forEach(addToResults);
       }
     } catch (error) {
-      // Continue to next variant if this one fails
       continue;
     }
+  }
+
+  let allResults = Array.from(resultsByKey.values());
+
+  if (allResults.length === 0 && (normalizedQuery.country || admin1Filter)) {
+    // If the filters returned nothing, retry without them to avoid missing valid cities.
+    for (const cityVariant of cityVariants) {
+      const params = new URLSearchParams({
+        name: cityVariant,
+        count: '50',
+        language: 'en',
+        format: 'json'
+      });
+
+      const geocodeUrl = `${GEOCODING_URL}?${params.toString()}`;
+
+      try {
+        const geoData = await fetchJson<{
+          results?: Array<{
+            id?: number;
+            name: string;
+            country: string;
+            country_code?: string;
+            admin1?: string;
+            latitude: number;
+            longitude: number;
+            timezone: string;
+            population?: number;
+            feature_code?: string;
+          }>;
+        }>(geocodeUrl);
+
+        if (geoData.results && geoData.results.length > 0) {
+          geoData.results.forEach(addToResults);
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    allResults = Array.from(resultsByKey.values());
   }
 
   if (allResults.length === 0) {

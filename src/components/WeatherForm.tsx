@@ -55,7 +55,7 @@ export default function WeatherForm({ onSearch, loading }: WeatherFormProps) {
             <input
               value={country}
               onChange={(event) => setCountry(event.target.value)}
-              placeholder="Ex: Brasil, EUA"
+              placeholder="Ex: Brasil, Portugal, EUA, US"
               className="mt-2 w-full rounded-3xl border border-slate-700/80 bg-slate-950/90 px-5 py-4 text-slate-100 outline-none transition focus:border-cyan-400/90 focus:ring-2 focus:ring-cyan-400/20"
             />
           </div>
@@ -72,8 +72,8 @@ export default function WeatherForm({ onSearch, loading }: WeatherFormProps) {
         </button>
       </div>
       <p className="text-sm text-slate-500">
-        Informe a cidade. Para maior precisão, adicione estado (ex: SP, NY) e país (ex: Brasil, EUA).
-        Use nomes em português ou inglês.
+        Informe a cidade. Para maior precisão, adicione estado (ex: SP, NY) e país (ex: Brasil, Portugal, EUA ou US).
+        Use nomes em português ou inglês e siglas de país quando preferir.
       </p>
     </form>
   );
