@@ -517,6 +517,23 @@ function selectBestMatch<ResultType extends {
     .sort((a, b) => b.score - a.score)[0]?.item || null;
 }
 
+/**
+ * Busca o clima atual para uma localização informada pelo usuário.
+ *
+ * @param query - Objeto de consulta que descreve a localização.
+ * @param query.city - Nome da cidade obrigatória.
+ * @param query.state - Nome ou sigla do estado/província para melhorar a precisão em cidades ambíguas (opcional).
+ * @param query.country - Nome ou código do país para melhorar a correspondência (opcional).
+ * @returns Promise que resolve com os dados de clima atuais (`WeatherData`) para a localização selecionada.
+ *
+ * @example
+ * const weather = await fetchWeatherByCity({
+ *   city: 'São Paulo',
+ *   state: 'SP',
+ *   country: 'Brasil'
+ * });
+ * console.log(weather.temperature, weather.condition);
+ */
 export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherData> {
   // Normalize query for better API matching
   const normalizedQuery: WeatherQuery = {
