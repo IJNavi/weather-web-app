@@ -43,8 +43,14 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - `src/hooks` - weather search state hook
 - `src/services` - Open-Meteo client
 - `src/types` - TypeScript definitions
-- `src/utils` - weather mapping and utilities
+- `src/utils` - weather mapping and utilities- `tests` - unit, integration, and service tests
 
+## Tests
+
+- Run unit and integration tests: `npm run test:run`
+- Start the interactive test runner: `npm test`
+- Test files are located in `tests/`, including component, integration, and service coverage.
+- GitHub Actions is configured to run tests before each deploy.
 ---
 
 # Weather Web App (Portuguese)

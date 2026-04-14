@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Test and Deploy to GitHub Pages
 
 on:
   # Executa ao fazer push na branch main
@@ -35,6 +35,9 @@ jobs:
       
       - name: Instalar dependências
         run: npm ci
+      
+      - name: Executar testes
+        run: npm run test:run
       
       - name: Build do projeto
         run: npm run build

@@ -32,8 +32,9 @@ export default function WeatherForm({ onSearch, loading }: WeatherFormProps) {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300">Cidade</label>
+          <label htmlFor="city" className="block text-sm font-medium text-slate-300">Cidade</label>
           <input
+            id="city"
             value={city}
             onChange={(event) => setCity(event.target.value)}
             placeholder="Digite a cidade"
@@ -42,8 +43,9 @@ export default function WeatherForm({ onSearch, loading }: WeatherFormProps) {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-slate-300">Estado (opcional)</label>
+            <label htmlFor="state" className="block text-sm font-medium text-slate-300">Estado (opcional)</label>
             <input
+              id="state"
               value={state}
               onChange={(event) => setState(event.target.value)}
               placeholder="Ex: SP, NY, RS"
@@ -51,8 +53,9 @@ export default function WeatherForm({ onSearch, loading }: WeatherFormProps) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300">País (opcional)</label>
+            <label htmlFor="country" className="block text-sm font-medium text-slate-300">País (opcional)</label>
             <input
+              id="country"
               value={country}
               onChange={(event) => setCountry(event.target.value)}
               placeholder="Ex: Brasil, Portugal, EUA, US"
