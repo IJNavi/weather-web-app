@@ -4,6 +4,15 @@
 
 A simple weather application built with React, TypeScript, and Tailwind CSS.
 
+[![React](https://img.shields.io/badge/react-18.3.1-blue?logo=react&logoColor=white)](https://react.dev) [![TypeScript](https://img.shields.io/badge/typescript-5.6.2-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org) [![Tailwind CSS](https://img.shields.io/badge/tailwind_css-3.4.5-skyblue?logo=tailwindcss&logoColor=white)](https://tailwindcss.com) [![Vite](https://img.shields.io/badge/vite-5.4.1-yellow?logo=vite&logoColor=white)](https://vitejs.dev) [![Vitest](https://img.shields.io/badge/vitest-4.1.4-purple?logo=vitest&logoColor=white)](https://vitest.dev)
+
+## Technologies and tools
+
+- Frontend built with React, TypeScript, Tailwind CSS and Vite.
+- Tests implemented with Vitest, React Testing Library, and happy-dom.
+- Deployed using GitHub Actions with a Pages workflow.
+- Open-Meteo API consumes geolocation and current weather data.
+
 ## How to use
 
 1. Install dependencies:
@@ -52,7 +61,8 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - `src/hooks` - weather search state hook
 - `src/services` - Open-Meteo client
 - `src/types` - TypeScript definitions
-- `src/utils` - weather mapping and utilities- `tests` - unit, integration, and service tests
+- `src/utils` - weather mapping and utilities
+- `tests` - unit, integration, and service tests
 
 ## Tests
 
@@ -65,6 +75,15 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 # Weather Web App (Portuguese)
 
 Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
+
+[![React](https://img.shields.io/badge/react-18.3.1-blue?logo=react&logoColor=white)](https://react.dev) [![TypeScript](https://img.shields.io/badge/typescript-5.6.2-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org) [![Tailwind CSS](https://img.shields.io/badge/tailwind_css-3.4.5-skyblue?logo=tailwindcss&logoColor=white)](https://tailwindcss.com) [![Vite](https://img.shields.io/badge/vite-5.4.1-yellow?logo=vite&logoColor=white)](https://vitejs.dev) [![Vitest](https://img.shields.io/badge/vitest-4.1.4-purple?logo=vitest&logoColor=white)](https://vitest.dev)
+
+## Tecnologias e ferramentas
+
+- Frontend construído com React, TypeScript, Tailwind CSS e Vite.
+- Testes implementados com Vitest, React Testing Library e happy-dom.
+- Deploy configurado com GitHub Actions e GitHub Pages.
+- A API Open-Meteo fornece geolocalização e clima atual.
 
 ## Como usar
 
