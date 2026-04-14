@@ -1,5 +1,7 @@
 # Weather Web App
 
+![CI](https://github.com/IJNavi/weather-web-app/actions/workflows/ci.yml/badge.svg)
+
 A simple weather application built with React, TypeScript, and Tailwind CSS.
 
 ## How to use
@@ -13,6 +15,13 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
    npm run dev
    ```
 3. Open your browser at `http://localhost:5173`
+
+## Input validation
+
+- The app trims the city input and sends it to the geocoding API.
+- It does not reject numbers or symbols outright, because some place names or geocoding queries may include non-letter characters.
+- If the API cannot resolve the query, the app shows a friendly "Cidade não encontrada" message.
+- Therefore, strict client-side blocking of digits/symbols is not necessary, but keeping the city field required is important.
 
 ## Search functionality
 
