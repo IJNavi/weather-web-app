@@ -1,5 +1,12 @@
 import { WeatherData } from '../types/weather';
 
+/**
+ * Parâmetros usados para buscar o clima por localização.
+ *
+ * - `city`: nome da cidade obrigatória.
+ * - `state`: estado ou província opcional para diferenciar cidades com o mesmo nome.
+ * - `country`: país opcional para melhorar a precisão da busca.
+ */
 type WeatherQuery = {
   city: string;
   state?: string;

@@ -33,6 +33,12 @@ const weatherThemes = {
 
 type ThemeKey = keyof typeof weatherThemes;
 
+/**
+ * Retorna o tema visual do clima com base em uma descrição de condição.
+ *
+ * @param condition - Texto que descreve a condição de tempo recebida da API.
+ * @returns Objeto contendo rótulo, ícone e características do clima.
+ */
 export function getWeatherTheme(condition: string) {
   const normalized = condition.toLowerCase();
   if (normalized.includes('rain') || normalized.includes('chuva')) return weatherThemes.rain;
