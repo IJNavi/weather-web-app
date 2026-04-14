@@ -6,15 +6,60 @@ type WeatherQuery = {
   country?: string;
 };
 
+const DEFAULT_FETCH_TIMEOUT_MS = 10000;
 const GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
+const API_TIMEOUT_MESSAGE = 'O tempo de resposta da API expirou. Tente novamente mais tarde.';
+const API_RATE_LIMIT_MESSAGE = 'Limite de requisições da API atingido. Aguarde e tente novamente.';
+const API_SERVER_ERROR_MESSAGE = 'Servidor de clima indisponível no momento. Tente novamente em alguns instantes.';
+const API_REQUEST_ERROR_MESSAGE = 'Não foi possível buscar o clima. Verifique os dados e tente novamente.';
+const API_NETWORK_ERROR_MESSAGE = 'Não foi possível conectar à API de clima. Verifique sua conexão e tente novamente.';
+const API_INVALID_RESPONSE_MESSAGE = 'Resposta da API de clima no formato inesperado. Tente novamente mais tarde.';
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Falha na requisição à API de clima.');
+function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof DOMException && error.name === 'AbortError') ||
+    (error instanceof Error && error.name === 'AbortError')
+  );
+}
+
+async function fetchJson<T>(url: string, timeoutMs = DEFAULT_FETCH_TIMEOUT_MS): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        throw new Error(API_RATE_LIMIT_MESSAGE);
+      }
+
+      if (response.status >= 500) {
+        throw new Error(API_SERVER_ERROR_MESSAGE);
+      }
+
+      throw new Error(API_REQUEST_ERROR_MESSAGE);
+    }
+
+    return response.json();
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw new Error(API_TIMEOUT_MESSAGE);
+    }
+
+    if (error instanceof SyntaxError) {
+      throw new Error(API_INVALID_RESPONSE_MESSAGE);
+    }
+
+    if (error instanceof TypeError) {
+      throw new Error(API_NETWORK_ERROR_MESSAGE);
+    }
+
+    throw error instanceof Error ? error : new Error('Erro inesperado na API de clima.');
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return response.json();
 }
 
 function normalizeText(value: string): string {
@@ -495,6 +540,7 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
     population?: number;
     feature_code?: string;
   }>();
+  let lastServiceError: Error | null = null;
 
   const addToResults = (item: {
     id?: number;
@@ -554,6 +600,9 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
         geoData.results.forEach(addToResults);
       }
     } catch (error) {
+      if (error instanceof Error) {
+        lastServiceError = error;
+      }
       continue;
     }
   }
@@ -592,6 +641,9 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
           geoData.results.forEach(addToResults);
         }
       } catch (error) {
+        if (error instanceof Error) {
+          lastServiceError = error;
+        }
         continue;
       }
     }
@@ -600,6 +652,10 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
   }
 
   if (allResults.length === 0) {
+    if (lastServiceError) {
+      throw lastServiceError;
+    }
+
     throw new Error('Cidade não encontrada. Tente outro nome ou adicione estado e país para refinar a busca.');
   }
 
@@ -624,9 +680,20 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
       windspeed: number;
       weathercode: number;
       time: string;
-    };
+    } | null;
     hourly?: { relativehumidity_2m?: number[] };
   }>(`${WEATHER_URL}?${queryParams.toString()}`);
+
+  if (
+    !weatherData ||
+    !weatherData.current_weather ||
+    typeof weatherData.current_weather.temperature !== 'number' ||
+    typeof weatherData.current_weather.windspeed !== 'number' ||
+    typeof weatherData.current_weather.weathercode !== 'number' ||
+    typeof weatherData.current_weather.time !== 'string'
+  ) {
+    throw new Error(API_INVALID_RESPONSE_MESSAGE);
+  }
 
   const humidity = weatherData.hourly?.relativehumidity_2m?.[0] ?? 55;
 
