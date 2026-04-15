@@ -15,6 +15,7 @@ interface ConfirmState {
     queries: WeatherQuery[];
     availableSlots: number;
     replacementCount: number;
+    replacementKeys?: string[];
   } | string | null;
 }
 
@@ -98,13 +99,39 @@ export default function AdvancedWeather() {
     const requiresReplacement = uniqueQueries.length > availableSlots && entries.length > 0;
 
     if (requiresReplacement) {
+      const queryKeys = new Set(queries.map(buildLocationKey));
+      const currentEntries = entries.map((entry) => ({
+        key: buildLocationKey({
+          city: entry.city ?? entry.location,
+          state: entry.state,
+          country: entry.country
+        })
+      }));
+
+      const staleEntries = currentEntries.filter((entry) => !queryKeys.has(entry.key));
+      const replacementKeys = staleEntries.slice(0, replacementCount).map((entry) => entry.key);
+
+      if (replacementKeys.length < replacementCount) {
+        const remainingCount = replacementCount - replacementKeys.length;
+        const fallbackKeys = currentEntries
+          .filter((entry) => !replacementKeys.includes(entry.key))
+          .slice(0, remainingCount)
+          .map((entry) => entry.key);
+        replacementKeys.push(...fallbackKeys);
+      }
+
+      const message = staleEntries.length >= replacementCount
+        ? `A busca trará ${uniqueQueries.length} cidades novas. Deseja substituir as ${replacementCount} cidades que não fazem parte deste novo lote para acomodar todas as novas consultas?`
+        : `A busca trará ${uniqueQueries.length} cidades novas. Deseja remover as ${replacementCount} cidades mais antigas para acomodar todas as novas consultas?`;
+
       setConfirmState({
         type: 'replace',
-        message: `A busca trará ${uniqueQueries.length} cidades novas. Deseja remover as ${replacementCount} cidades mais antigas para acomodar todas as novas?`,
+        message,
         payload: {
           queries: uniqueQueries,
           availableSlots,
-          replacementCount
+          replacementCount,
+          replacementKeys
         }
       });
       return;
@@ -150,12 +177,26 @@ export default function AdvancedWeather() {
       queries: WeatherQuery[];
       availableSlots: number;
       replacementCount: number;
+      replacementKeys?: string[];
     };
     if (!payload) return;
 
     setConfirmState(null);
     if (payload.replacementCount > 0) {
-      setEntries((current) => current.slice(payload.replacementCount));
+      setEntries((current) => {
+        if (payload.replacementKeys?.length) {
+          return current.filter((entry) => {
+            const key = buildLocationKey({
+              city: entry.city ?? entry.location,
+              state: entry.state,
+              country: entry.country
+            });
+            return !payload.replacementKeys?.includes(key);
+          });
+        }
+
+        return current.slice(payload.replacementCount);
+      });
     }
 
     await fetchAndAddQueries(payload.queries);
@@ -254,7 +295,7 @@ export default function AdvancedWeather() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+      <div className="space-y-6">
         <section className="space-y-6 rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-soft">
           <div>
             <h3 className="text-xl font-semibold text-slate-100">Busca rápida avançada</h3>
@@ -322,7 +363,7 @@ export default function AdvancedWeather() {
         </section>
 
         <aside className="rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-soft">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Lista de cidades</p>
               <p className="mt-1 text-slate-400">Exibindo {entries.length} de {MAX_DISPLAYED_CITIES} cidades permitidas.</p>

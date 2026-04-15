@@ -1,4 +1,4 @@
-import { WeatherQuery } from '../services/openMeteo';
+import { WeatherQuery, normalizeCountry, normalizeState } from '../services/openMeteo';
 
 /**
  * Normaliza texto para comparações independentes de maiúsculas/minúsculas.
@@ -8,12 +8,21 @@ export function normalizeText(value: string): string {
 }
 
 /**
+ * Remove diacríticos para comparar strings sem acentos.
+ */
+export function removeDiacritics(value: string): string {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+}
+
+/**
  * Gera uma chave única para a combinação cidade/estado/país.
  */
 export function buildLocationKey(query: WeatherQuery): string {
-  return [query.city, query.state ?? '', query.country ?? '']
-    .map(normalizeText)
-    .join('|');
+  const city = normalizeText(removeDiacritics(query.city));
+  const state = query.state ? normalizeText(removeDiacritics(normalizeState(query.state))) : '';
+  const country = query.country ? normalizeText(removeDiacritics(normalizeCountry(query.country))) : '';
+
+  return [city, state, country].join('|');
 }
 
 /**

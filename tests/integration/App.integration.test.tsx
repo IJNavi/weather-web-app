@@ -60,6 +60,25 @@ describe('App integration', () => {
     expect(await screen.findByText(/São Paulo, BR/i)).toBeInTheDocument();
   });
 
+  it('uses advanced single-city search with accented city and country', async () => {
+    mockedFetchWeather.mockResolvedValue(mockWeatherData as any);
+
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /verificação avançada/i }));
+    await user.type(screen.getByLabelText(/cidade única/i), 'Assunção, Distrito Federal, Brasil');
+    await user.click(screen.getByRole('button', { name: /buscar cidade única/i }));
+
+    expect(mockedFetchWeather).toHaveBeenCalledWith({
+      city: 'Assunção',
+      state: 'Distrito Federal',
+      country: 'Brasil'
+    });
+    expect(await screen.findByText(/São Paulo, BR/i)).toBeInTheDocument();
+  });
+
   it('shows an error if the weather service fails', async () => {
     mockedFetchWeather.mockRejectedValue(new Error('Cidade não encontrada.'));
 

@@ -56,6 +56,7 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - The app allows searching by city name.
 - For more precise searches, users can also provide the state and country.
 - Search is automatically refined to avoid ambiguous results for cities with the same names.
+- The service also normalizes accents and name variants, so entries like `Assunção`, `Asunción`, `Montevidéu`, and `Montevideo` are resolved consistently.
 - Supports global searches in different countries, including Brazil, USA, and China.
 - A new advanced tab allows managing up to 10 cities simultaneously, with batch search and city list controls.
 

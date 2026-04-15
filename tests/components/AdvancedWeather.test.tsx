@@ -108,7 +108,7 @@ describe('AdvancedWeather', () => {
     expect(screen.queryByText(/Cidade 11, BR/i)).not.toBeInTheDocument();
   });
 
-  it('prompts replacement when the batch contains one new city after the list was modified', async () => {
+  it('replaces only the non-batch city when the same batch is searched after a modification', async () => {
     const fetchSpy = vi.spyOn(openMeteo, 'fetchWeatherByCity').mockImplementation(async (query: any) => ({
       ...mockWeatherEntry,
       location: `${query.city}, ${query.country || 'BR'}`,
@@ -122,27 +122,47 @@ describe('AdvancedWeather', () => {
 
     await user.click(screen.getByRole('button', { name: /busca múltipla/i }));
     const cityInput = screen.getByPlaceholderText('Ex: Rio de Janeiro, Rio de Janeiro, Brasil; Nova York, Nova York, Estados Unidos');
-    await user.type(cityInput, Array.from({ length: 10 }, (_, index) => `Cidade ${index + 1}, ST, BR`).join('; '));
+    const batchCities = [
+      'São Paulo, São Paulo, Brasil',
+      'Buenos Aires, Autonomous City of Buenos Aires, Argentina',
+      'Santiago, Região Metropolitana, Chile',
+      'Bogotá, Distrito Capital, Colômbia',
+      'Lima, Lima, Peru',
+      'Montevidéu, Montevidéu, Uruguai',
+      'Assunção, Central, Paraguai',
+      'Quito, Pichincha, Equador',
+      'Caracas, Distrito Capital, Venezuela',
+      'La Paz, La Paz, Bolívia'
+    ].join('; ');
+
+    await user.type(cityInput, batchCities);
     await user.click(screen.getByRole('button', { name: /enviar busca múltipla/i }));
 
-    expect(await screen.findByText(/Cidade 1, BR/i)).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Remover São Paulo, Brasil/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Remover Buenos Aires, Argentina/i })).toBeInTheDocument();
 
-    const firstRemoveButton = await screen.findByRole('button', { name: /remover Cidade 1, BR/i });
-    await user.click(firstRemoveButton);
+    const removeSaoPaulo = await screen.findByRole('button', { name: /Remover São Paulo, Brasil/i });
+    await user.click(removeSaoPaulo);
     await user.click(screen.getByRole('button', { name: /sim/i }));
 
+    expect(screen.queryByRole('button', { name: /Remover São Paulo, Brasil/i })).not.toBeInTheDocument();
+
     await user.clear(screen.getByLabelText(/cidade única/i));
-    await user.type(screen.getByLabelText(/cidade única/i), 'Cidade 11, ST, BR');
+    await user.type(screen.getByLabelText(/cidade única/i), 'Rio de Janeiro, Rio de Janeiro, Brasil');
     await user.click(screen.getByRole('button', { name: /buscar cidade única/i }));
 
-    expect(await screen.findByText(/Cidade 11, BR/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Rio de Janeiro, Brasil/i)).toBeInTheDocument();
 
     await user.clear(cityInput);
-    await user.type(cityInput, Array.from({ length: 10 }, (_, index) => `Cidade ${index + 1}, ST, BR`).join('; '));
+    await user.type(cityInput, batchCities);
     await user.click(screen.getByRole('button', { name: /enviar busca múltipla/i }));
 
     expect(await screen.findByRole('button', { name: /sim/i })).toBeInTheDocument();
-    expect(screen.queryByText(/A lista de exibição já está cheia/i)).not.toBeInTheDocument();
-    expect(fetchSpy).toHaveBeenCalledTimes(11);
+    await user.click(screen.getByRole('button', { name: /sim/i }));
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: /Remover Rio de Janeiro, Brasil/i })).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /Remover São Paulo, Brasil/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Remover Buenos Aires, Argentina/i })).toBeInTheDocument();
+    expect(fetchSpy).toHaveBeenCalledTimes(12);
   }, 10000);
 });

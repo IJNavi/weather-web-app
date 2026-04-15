@@ -4,7 +4,7 @@ import { buildLocationKey, formatQueryLabel, parseBatchCities } from '../../src/
 describe('advancedWeather utilities', () => {
   it('builds a stable key from city, state and country', () => {
     const key = buildLocationKey({ city: 'São Paulo', state: 'SP', country: 'Brasil' });
-    expect(key).toBe('são paulo|sp|brasil');
+    expect(key).toBe('sao paulo|sp|br');
   });
 
   it('formats query labels without empty fields', () => {
