@@ -11,7 +11,11 @@ const MAX_DISPLAYED_CITIES = 10;
 interface ConfirmState {
   type: 'replace' | 'clear' | 'remove';
   message: string;
-  payload?: WeatherQuery[] | string | null;
+  payload?: {
+    queries: WeatherQuery[];
+    availableSlots: number;
+    replacementCount: number;
+  } | string | null;
 }
 
 export default function AdvancedWeather() {
@@ -90,13 +94,18 @@ export default function AdvancedWeather() {
     if (uniqueQueries.length === 0) return;
 
     const availableSlots = MAX_DISPLAYED_CITIES - entries.length;
-    const requiresReplacement = duplicateLabels.length === 0 && uniqueQueries.length > availableSlots && entries.length > 0;
+    const replacementCount = Math.max(0, uniqueQueries.length - availableSlots);
+    const requiresReplacement = uniqueQueries.length > availableSlots && entries.length > 0;
 
     if (requiresReplacement) {
       setConfirmState({
         type: 'replace',
-        message: `A busca trará ${uniqueQueries.length} cidades novas e a lista atual tem ${entries.length}. Deseja remover as ${uniqueQueries.length - availableSlots} cidades mais antigas para acomodar todas as novas?`,
-        payload: uniqueQueries
+        message: `A busca trará ${uniqueQueries.length} cidades novas. Deseja remover as ${replacementCount} cidades mais antigas para acomodar todas as novas?`,
+        payload: {
+          queries: uniqueQueries,
+          availableSlots,
+          replacementCount
+        }
       });
       return;
     }
@@ -137,18 +146,19 @@ export default function AdvancedWeather() {
 
   const handleConfirmReplace = async () => {
     if (!confirmState || confirmState.type !== 'replace') return;
-    const queriesToAdd = confirmState.payload as WeatherQuery[];
-    if (!queriesToAdd) return;
-
-    const availableSlots = MAX_DISPLAYED_CITIES - entries.length;
-    const replacementCount = Math.max(0, queriesToAdd.length - availableSlots);
+    const payload = confirmState.payload as {
+      queries: WeatherQuery[];
+      availableSlots: number;
+      replacementCount: number;
+    };
+    if (!payload) return;
 
     setConfirmState(null);
-    if (replacementCount > 0) {
-      setEntries((current) => current.slice(replacementCount));
+    if (payload.replacementCount > 0) {
+      setEntries((current) => current.slice(payload.replacementCount));
     }
 
-    await fetchAndAddQueries(queriesToAdd);
+    await fetchAndAddQueries(payload.queries);
   };
 
   const handleClearAll = () => {
@@ -193,7 +203,21 @@ export default function AdvancedWeather() {
     setConfirmState(null);
   };
 
-  const cancelConfirm = () => {
+  const cancelConfirm = async () => {
+    if (confirmState?.type === 'replace') {
+      const payload = confirmState.payload as {
+        queries: WeatherQuery[];
+        availableSlots: number;
+        replacementCount: number;
+      };
+
+      if (payload?.availableSlots && payload.availableSlots > 0) {
+        await fetchAndAddQueries(payload.queries.slice(0, payload.availableSlots));
+        setConfirmState(null);
+        return;
+      }
+    }
+
     setConfirmState(null);
     setFeedback('A ação foi cancelada.');
   };

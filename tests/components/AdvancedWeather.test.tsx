@@ -107,4 +107,42 @@ describe('AdvancedWeather', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(screen.queryByText(/Cidade 11, BR/i)).not.toBeInTheDocument();
   });
+
+  it('prompts replacement when the batch contains one new city after the list was modified', async () => {
+    const fetchSpy = vi.spyOn(openMeteo, 'fetchWeatherByCity').mockImplementation(async (query: any) => ({
+      ...mockWeatherEntry,
+      location: `${query.city}, ${query.country || 'BR'}`,
+      city: query.city,
+      state: query.state,
+      country: query.country
+    } as any));
+
+    const user = userEvent.setup();
+    render(<AdvancedWeather />);
+
+    await user.click(screen.getByRole('button', { name: /busca múltipla/i }));
+    const cityInput = screen.getByPlaceholderText('Ex: Rio de Janeiro, Rio de Janeiro, Brasil; Nova York, Nova York, Estados Unidos');
+    await user.type(cityInput, Array.from({ length: 10 }, (_, index) => `Cidade ${index + 1}, ST, BR`).join('; '));
+    await user.click(screen.getByRole('button', { name: /enviar busca múltipla/i }));
+
+    expect(await screen.findByText(/Cidade 1, BR/i)).toBeInTheDocument();
+
+    const firstRemoveButton = await screen.findByRole('button', { name: /remover Cidade 1, BR/i });
+    await user.click(firstRemoveButton);
+    await user.click(screen.getByRole('button', { name: /sim/i }));
+
+    await user.clear(screen.getByLabelText(/cidade única/i));
+    await user.type(screen.getByLabelText(/cidade única/i), 'Cidade 11, ST, BR');
+    await user.click(screen.getByRole('button', { name: /buscar cidade única/i }));
+
+    expect(await screen.findByText(/Cidade 11, BR/i)).toBeInTheDocument();
+
+    await user.clear(cityInput);
+    await user.type(cityInput, Array.from({ length: 10 }, (_, index) => `Cidade ${index + 1}, ST, BR`).join('; '));
+    await user.click(screen.getByRole('button', { name: /enviar busca múltipla/i }));
+
+    expect(await screen.findByRole('button', { name: /sim/i })).toBeInTheDocument();
+    expect(screen.queryByText(/A lista de exibição já está cheia/i)).not.toBeInTheDocument();
+    expect(fetchSpy).toHaveBeenCalledTimes(11);
+  }, 10000);
 });
