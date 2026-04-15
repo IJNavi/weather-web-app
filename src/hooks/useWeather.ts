@@ -8,6 +8,10 @@ const ERROR_WAIT_MESSAGE = 'Aguarde alguns segundos antes de tentar outra busca.
 /**
  * Hook para buscar e armazenar o estado do clima atual.
  *
+ * O hook impede que múltiplas buscas sejam enviadas em paralelo e também
+ * bloqueia pesquisas repetidas em um curto intervalo, reduzindo requisições
+ * desnecessárias à API de clima.
+ *
  * Retorna o clima carregado, o estado de carregamento, mensagens de erro e
  * uma função para iniciar a busca com base na consulta informada.
  */
@@ -20,6 +24,10 @@ export default function useWeather() {
 
   /**
    * Busca o clima para a consulta fornecida e atualiza o estado do hook.
+   *
+   * Esta função também protege contra envios duplicados, ignorando novas
+   * chamadas enquanto outra busca estiver em andamento ou se a última busca
+   * tiver sido executada há menos de 1,5 segundos.
    *
    * @param query - Parâmetros de localização com cidade obrigatória e filtros opcionais.
    */
