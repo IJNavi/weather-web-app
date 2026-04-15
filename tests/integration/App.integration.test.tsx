@@ -43,6 +43,23 @@ describe('App integration', () => {
     expect(screen.getAllByText(/Céu limpo/i).length).toBeGreaterThan(0);
   });
 
+  it('prevents multiple searches in quick succession', async () => {
+    mockedFetchWeather.mockResolvedValue(mockWeatherData as any);
+
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.type(screen.getByLabelText(/cidade/i), 'São Paulo');
+    const searchButton = screen.getByRole('button', { name: /buscar clima/i });
+
+    await user.click(searchButton);
+    await user.click(searchButton);
+
+    expect(mockedFetchWeather).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText(/São Paulo, BR/i)).toBeInTheDocument();
+  });
+
   it('shows an error if the weather service fails', async () => {
     mockedFetchWeather.mockRejectedValue(new Error('Cidade não encontrada.'));
 

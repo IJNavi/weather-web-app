@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { WeatherData } from '../types/weather';
 import { fetchWeatherByCity, WeatherQuery } from '../services/openMeteo';
+
+const MIN_SEARCH_INTERVAL_MS = 1500;
+const ERROR_WAIT_MESSAGE = 'Aguarde alguns segundos antes de tentar outra busca.';
 
 /**
  * Hook para buscar e armazenar o estado do clima atual.
@@ -12,6 +15,8 @@ export default function useWeather() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestInProgress = useRef(false);
+  const lastSearchAt = useRef<number | null>(null);
 
   /**
    * Busca o clima para a consulta fornecida e atualiza o estado do hook.
@@ -19,6 +24,16 @@ export default function useWeather() {
    * @param query - Parâmetros de localização com cidade obrigatória e filtros opcionais.
    */
   async function fetchWeather(query: WeatherQuery) {
+    if (requestInProgress.current) return;
+
+    const now = Date.now();
+    if (lastSearchAt.current && now - lastSearchAt.current < MIN_SEARCH_INTERVAL_MS) {
+      setError(ERROR_WAIT_MESSAGE);
+      return;
+    }
+
+    requestInProgress.current = true;
+    lastSearchAt.current = now;
     setLoading(true);
     setError(null);
 
@@ -29,6 +44,7 @@ export default function useWeather() {
       setWeather(null);
       setError(err instanceof Error ? err.message : 'Erro inesperado ao buscar o clima.');
     } finally {
+      requestInProgress.current = false;
       setLoading(false);
     }
   }
