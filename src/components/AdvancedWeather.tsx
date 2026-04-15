@@ -11,7 +11,7 @@ const MAX_DISPLAYED_CITIES = 10;
 interface ConfirmState {
   type: 'replace' | 'clear' | 'remove';
   message: string;
-  payload?: any;
+  payload?: WeatherQuery[] | string | null;
 }
 
 export default function AdvancedWeather() {
@@ -90,18 +90,25 @@ export default function AdvancedWeather() {
     if (uniqueQueries.length === 0) return;
 
     const availableSlots = MAX_DISPLAYED_CITIES - entries.length;
-    if (uniqueQueries.length > availableSlots && entries.length > 0) {
+    const requiresReplacement = duplicateLabels.length === 0 && uniqueQueries.length > availableSlots && entries.length > 0;
+
+    if (requiresReplacement) {
       setConfirmState({
         type: 'replace',
-        message: `Já existem ${entries.length} cidades exibidas. Deseja substituir as atuais para exibir ${uniqueQueries.length} novas cidades?`,
+        message: `A busca trará ${uniqueQueries.length} cidades novas e a lista atual tem ${entries.length}. Deseja remover as ${uniqueQueries.length - availableSlots} cidades mais antigas para acomodar todas as novas?`,
         payload: uniqueQueries
       });
       return;
     }
 
+    if (availableSlots <= 0) {
+      setFeedback('A lista de exibição já está cheia. Nenhuma nova cidade pode ser adicionada.');
+      return;
+    }
+
     const queriesToFetch = uniqueQueries.slice(0, availableSlots);
     if (queriesToFetch.length < uniqueQueries.length) {
-      setFeedback(`Apenas as primeiras ${queriesToFetch.length} cidades válidas foram adicionadas porque o limite é ${MAX_DISPLAYED_CITIES}.`);
+      setFeedback(`Apenas as primeiras ${queriesToFetch.length} cidades não repetidas foram adicionadas para não ultrapassar o limite de ${MAX_DISPLAYED_CITIES}.`);
     }
 
     await fetchAndAddQueries(queriesToFetch);
@@ -130,9 +137,18 @@ export default function AdvancedWeather() {
 
   const handleConfirmReplace = async () => {
     if (!confirmState || confirmState.type !== 'replace') return;
+    const queriesToAdd = confirmState.payload as WeatherQuery[];
+    if (!queriesToAdd) return;
+
+    const availableSlots = MAX_DISPLAYED_CITIES - entries.length;
+    const replacementCount = Math.max(0, queriesToAdd.length - availableSlots);
+
     setConfirmState(null);
-    setEntries([]);
-    await fetchAndAddQueries(confirmState.payload.slice(0, MAX_DISPLAYED_CITIES));
+    if (replacementCount > 0) {
+      setEntries((current) => current.slice(replacementCount));
+    }
+
+    await fetchAndAddQueries(queriesToAdd);
   };
 
   const handleClearAll = () => {

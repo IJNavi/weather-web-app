@@ -46,4 +46,65 @@ describe('AdvancedWeather', () => {
 
     expect(screen.getByPlaceholderText('Ex: Rio de Janeiro, Rio de Janeiro, Brasil; Nova York, Nova York, Estados Unidos')).toBeInTheDocument();
   });
+
+  it('adds only non-repeated cities from a batch search while preserving existing display items', async () => {
+    const firstCity = { ...mockWeatherEntry };
+    const secondCity = {
+      ...mockWeatherEntry,
+      location: 'Nova York, US',
+      city: 'Nova York',
+      state: 'NY',
+      country: 'Estados Unidos'
+    } as any;
+
+    vi.spyOn(openMeteo, 'fetchWeatherByCity')
+      .mockResolvedValueOnce(firstCity as any)
+      .mockResolvedValueOnce(secondCity as any);
+
+    const user = userEvent.setup();
+    render(<AdvancedWeather />);
+
+    await user.type(screen.getByLabelText(/cidade única/i), 'São Paulo, SP, Brasil');
+    await user.click(screen.getByRole('button', { name: /buscar cidade única/i }));
+
+    expect(await screen.findByText(/São Paulo, BR/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /busca múltipla/i }));
+    await user.type(screen.getByPlaceholderText('Ex: Rio de Janeiro, Rio de Janeiro, Brasil; Nova York, Nova York, Estados Unidos'), 'São Paulo, SP, Brasil; Nova York, NY, Estados Unidos');
+    await user.click(screen.getByRole('button', { name: /enviar busca múltipla/i }));
+
+    expect(await screen.findByText(/Nova York, US/i)).toBeInTheDocument();
+    expect(openMeteo.fetchWeatherByCity).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not call the weather API when the list is full and the user declines replacement', async () => {
+    const fetchSpy = vi.spyOn(openMeteo, 'fetchWeatherByCity').mockImplementation(async (query: any) => ({
+      ...mockWeatherEntry,
+      location: `${query.city}, ${query.country || 'BR'}`,
+      city: query.city,
+      state: query.state,
+      country: query.country
+    } as any));
+
+    const user = userEvent.setup();
+    render(<AdvancedWeather />);
+
+    await user.click(screen.getByRole('button', { name: /busca múltipla/i }));
+    const cityInput = screen.getByPlaceholderText('Ex: Rio de Janeiro, Rio de Janeiro, Brasil; Nova York, Nova York, Estados Unidos');
+    await user.type(cityInput, Array.from({ length: 10 }, (_, index) => `Cidade ${index + 1}, ST, BR`).join('; '));
+    await user.click(screen.getByRole('button', { name: /enviar busca múltipla/i }));
+
+    expect(await screen.findByText(/Cidade 1, BR/i)).toBeInTheDocument();
+
+    fetchSpy.mockClear();
+    await user.clear(cityInput);
+    await user.type(cityInput, 'Cidade 11, ST, BR');
+    await user.click(screen.getByRole('button', { name: /enviar busca múltipla/i }));
+
+    expect(await screen.findByRole('button', { name: /não/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /não/i }));
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Cidade 11, BR/i)).not.toBeInTheDocument();
+  });
 });
