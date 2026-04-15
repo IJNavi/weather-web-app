@@ -57,6 +57,7 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - For more precise searches, users can also provide the state and country.
 - Search is automatically refined to avoid ambiguous results for cities with the same names.
 - Supports global searches in different countries, including Brazil, USA, and China.
+- A new advanced tab allows managing up to 10 cities simultaneously, with batch search and city list controls.
 
 ## API usage and security measures
 
@@ -77,6 +78,8 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 
 - Weather search by city using the Open-Meteo API
 - Support for refined search with state and country
+- Advanced tab for multi-city management and batch search
+- Detail modal showing extended forecast for selected cities
 - Responsive interface with Tailwind CSS
 - Light animations and visual loading feedback
 - TypeScript logic for typed data
@@ -95,10 +98,12 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - Run unit and integration tests: `npm run test:run`
 - Start the interactive test runner: `npm test`
 - Run a specific integration file: `npx vitest run tests/integration/App.integration.test.tsx`
+- Run the new advanced search unit tests: `npx vitest run tests/utils/advancedWeather.test.ts`
 - Test files are located in `tests/`, including component, integration, and service coverage.
 - Current coverage includes:
   - service API error handling
   - integration flows for successful search and error display
+  - advanced search utilities and interface behavior
   - component rendering and user interactions
 - GitHub Actions is configured to run tests before each deploy.
 ---
@@ -134,6 +139,7 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 - Para buscas mais precisas, o usuário também pode informar o estado e o país.
 - A busca é refinada automaticamente para evitar resultados ambíguos em cidades com nomes iguais.
 - Suporta buscas globais em diferentes países, incluindo Brasil, EUA e China.
+- A aba de verificação avançada permite pesquisar até 10 cidades, usar buscas múltiplas e acompanhar uma lista de resultados.
 
 ## Visão geral visual
 
@@ -147,6 +153,8 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 
 - Busca de clima por cidade usando a API Open-Meteo
 - Suporte a busca refinada com estado e país
+- Aba avançada para gerenciamento de até 10 cidades simultâneas
+- Previsão estendida para planejamento de viagens
 - Interface responsiva com Tailwind CSS
 - Animações leves e feedback visual de carregamento
 - Lógica em TypeScript para dados tipados

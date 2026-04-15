@@ -1,19 +1,33 @@
 import { WeatherQuery } from '../services/openMeteo';
 
+/**
+ * Normaliza texto para comparações independentes de maiúsculas/minúsculas.
+ */
 export function normalizeText(value: string): string {
   return value.trim().toLowerCase();
 }
 
+/**
+ * Gera uma chave única para a combinação cidade/estado/país.
+ */
 export function buildLocationKey(query: WeatherQuery): string {
   return [query.city, query.state ?? '', query.country ?? '']
     .map(normalizeText)
     .join('|');
 }
 
+/**
+ * Constrói um rótulo legível para exibir a consulta ao usuário.
+ */
 export function formatQueryLabel(query: WeatherQuery): string {
   return [query.city, query.state, query.country].filter(Boolean).join(', ');
 }
 
+/**
+ * Converte texto de busca múltipla em consultas individuais.
+ *
+ * Permite cidades separadas por ponto e vírgula, e campos de cada cidade por vírgula.
+ */
 export function parseBatchCities(input: string): WeatherQuery[] {
   const items = input
     .split(/\s*;\s*/)

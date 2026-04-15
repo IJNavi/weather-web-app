@@ -7,6 +7,12 @@ interface ModalProps {
   onClose: () => void;
 }
 
+/**
+ * Componente de janela modal para exibir conteúdo em destaque.
+ *
+ * O modal mantém o foco do usuário na informação apresentada e não fecha ao
+ * clicar fora, apenas pelo botão de fechar interno.
+ */
 export default function Modal({ title, description, children, onClose }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-10">

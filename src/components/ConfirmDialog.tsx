@@ -9,6 +9,11 @@ interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
+/**
+ * Exibe um diálogo de confirmação dentro de um modal.
+ *
+ * Usado para confirmar remoção de cidade, limpeza total ou substituição da lista.
+ */
 export default function ConfirmDialog({
   title,
   message,

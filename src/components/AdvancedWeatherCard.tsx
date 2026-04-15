@@ -6,6 +6,11 @@ interface AdvancedWeatherCardProps {
   onRemove: () => void;
 }
 
+/**
+ * Card que representa uma cidade adicionada na lista avançada.
+ *
+ * Exibe informações básicas e permite seleção para previsão estendida ou remoção.
+ */
 export default function AdvancedWeatherCard({ weather, onSelect, onRemove }: AdvancedWeatherCardProps) {
   return (
     <article

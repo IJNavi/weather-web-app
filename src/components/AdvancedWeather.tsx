@@ -224,8 +224,9 @@ export default function AdvancedWeather() {
           </div>
 
           <div className="grid gap-4">
-            <label className="block text-sm font-medium text-slate-300">Cidade única</label>
+            <label htmlFor="advanced-city-input" className="block text-sm font-medium text-slate-300">Cidade única</label>
             <input
+              id="advanced-city-input"
               value={city}
               onChange={(event) => setCity(event.target.value)}
               placeholder="Ex: Rio de Janeiro, Rio de Janeiro, Brasil"
