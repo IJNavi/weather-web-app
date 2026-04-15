@@ -70,7 +70,7 @@ function App() {
           </main>
         ) : (
           <main className="rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-soft">
-            <AdvancedWeather onSimpleSearch={fetchWeather} />
+            <AdvancedWeather />
           </main>
         )}
       </div>

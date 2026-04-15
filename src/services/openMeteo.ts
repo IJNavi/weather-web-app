@@ -1,4 +1,4 @@
-import { WeatherData } from '../types/weather';
+import { WeatherData, WeatherForecastEntry } from '../types/weather';
 
 /**
  * Parâmetros usados para buscar o clima por localização.
@@ -736,11 +736,58 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
     }),
     conditionCode: weatherData.current_weather.weathercode,
     conditionIcon: getWeatherEmoji(weatherData.current_weather.weathercode),
-    description: getWeatherDescription(weatherData.current_weather.weathercode)
+    description: getWeatherDescription(weatherData.current_weather.weathercode),
+    city: normalizedQuery.city,
+    state: normalizedQuery.state,
+    country: normalizedQuery.country,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    timezone: location.timezone
   };
 }
 
+async function fetchWeatherForecastByLocation(location: {
+  latitude: number;
+  longitude: number;
+  timezone: string;
+}): Promise<WeatherForecastEntry[]> {
+  const queryParams = new URLSearchParams({
+    latitude: location.latitude.toString(),
+    longitude: location.longitude.toString(),
+    timezone: location.timezone,
+    temperature_unit: 'celsius',
+    windspeed_unit: 'kmh',
+    daily: 'temperature_2m_max,temperature_2m_min,weathercode',
+    forecast_days: '7',
+    format: 'json'
+  });
+
+  const forecastData = await fetchJson<{
+    daily?: {
+      time?: string[];
+      temperature_2m_max?: number[];
+      temperature_2m_min?: number[];
+      weathercode?: number[];
+    };
+  }>(`${WEATHER_URL}?${queryParams.toString()}`);
+
+  const daily = forecastData.daily;
+  if (!daily?.time || !daily.temperature_2m_max || !daily.temperature_2m_min || !daily.weathercode) {
+    throw new Error(API_INVALID_RESPONSE_MESSAGE);
+  }
+
+  return daily.time.map((date, index) => ({
+    date,
+    maxTemp: daily.temperature_2m_max?.[index] ?? 0,
+    minTemp: daily.temperature_2m_min?.[index] ?? 0,
+    weathercode: daily.weathercode?.[index] ?? 0,
+    icon: getWeatherEmoji(daily.weathercode?.[index] ?? 0),
+    description: getWeatherDescription(daily.weathercode?.[index] ?? 0)
+  }));
+}
+
 export type { WeatherQuery };
+export { fetchWeatherForecastByLocation };
 
 function getWeatherEmoji(code: number) {
   if (code === 0) return '☀️';

@@ -20,4 +20,25 @@ export interface WeatherData {
   conditionIcon: string;
   /** Descrição textual breve do clima. */
   description: string;
+  /** Cidade informada na consulta. */
+  city?: string;
+  /** Estado informado na consulta. */
+  state?: string;
+  /** País informado na consulta. */
+  country?: string;
+  /** Latitude usada para recuperar dados de clima. */
+  latitude?: number;
+  /** Longitude usada para recuperar dados de clima. */
+  longitude?: number;
+  /** Fuso horário da localização retornada. */
+  timezone?: string;
+}
+
+export interface WeatherForecastEntry {
+  date: string;
+  maxTemp: number;
+  minTemp: number;
+  weathercode?: number;
+  icon: string;
+  description: string;
 }
