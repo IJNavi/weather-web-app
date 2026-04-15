@@ -55,4 +55,17 @@ describe('App integration', () => {
 
     expect(await screen.findByText(/Cidade não encontrada/i)).toBeInTheDocument();
   });
+
+  it('shows the API timeout or service unavailable message from the weather service', async () => {
+    mockedFetchWeather.mockRejectedValue(new Error('Servidor de clima indisponível no momento. Tente novamente em alguns instantes.'));
+
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.type(screen.getByLabelText(/cidade/i), 'Lisboa');
+    await user.click(screen.getByRole('button', { name: /buscar clima/i }));
+
+    expect(await screen.findByText(/Servidor de clima indisponível/i)).toBeInTheDocument();
+  });
 });
