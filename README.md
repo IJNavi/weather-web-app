@@ -25,12 +25,31 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
    ```
 3. Open your browser at `http://localhost:5173`
 
-## Input validation
+### Example search
+
+- Enter a city name, such as `São Paulo`.
+- Optionally add state and country for ambiguous locations, e.g. `SP`, `Brasil`.
+
+> If you are using the service code directly, you can call:
+> ```ts
+> import { fetchWeatherByCity } from './src/services/openMeteo';
+>
+> const weather = await fetchWeatherByCity({
+>   city: 'São Paulo',
+>   state: 'SP',
+>   country: 'Brasil'
+> });
+>
+> console.log(weather.temperature, weather.description);
+> ```
+
+## Input validation and request control
 
 - The app trims the city input and sends it to the geocoding API.
 - It does not reject numbers or symbols outright, because some place names or geocoding queries may include non-letter characters.
 - If the API cannot resolve the query, the app shows a friendly "Cidade não encontrada" message.
-- Therefore, strict client-side blocking of digits/symbols is not necessary, but keeping the city field required is important.
+- The app disables the search button while a request is pending and blocks duplicate requests in quick succession.
+- This helps avoid repeated API calls from accidental multiple clicks or fast retries.
 
 ## Search functionality
 
@@ -38,6 +57,13 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - For more precise searches, users can also provide the state and country.
 - Search is automatically refined to avoid ambiguous results for cities with the same names.
 - Supports global searches in different countries, including Brazil, USA, and China.
+
+## API usage and security measures
+
+- The application uses the Open-Meteo API to fetch geocoding and current weather data.
+- The client-side code prevents multiple simultaneous requests and throttles quick repeated searches.
+- The service layer also recognizes API rate-limit responses (`429`) and exposes friendly error messages.
+- These protections do not replace server-side rate limiting, but they reduce accidental or abusive traffic from the browser.
 
 ## Visual overview
 
@@ -68,7 +94,12 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 
 - Run unit and integration tests: `npm run test:run`
 - Start the interactive test runner: `npm test`
+- Run a specific integration file: `npx vitest run tests/integration/App.integration.test.tsx`
 - Test files are located in `tests/`, including component, integration, and service coverage.
+- Current coverage includes:
+  - service API error handling
+  - integration flows for successful search and error display
+  - component rendering and user interactions
 - GitHub Actions is configured to run tests before each deploy.
 ---
 
@@ -127,4 +158,18 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 - `src/services` - cliente para Open-Meteo
 - `src/types` - definições TypeScript
 - `src/utils` - mapeamento e utilitários de clima
+
+## Testes
+
+- Execute testes unitários e de integração com `npm run test:run`
+- Inicie o runner interativo com `npm test`
+- Os arquivos de teste estão em `tests/`, incluindo cobertura para componentes, integração e serviços
+- A atual cobertura inclui tratamento de erros de serviço e fluxos de busca na interface
+
+## Segurança e uso de API
+
+- O aplicativo bloqueia buscas duplicadas enquanto uma requisição já está em andamento.
+- Ele também evita envios muito rápidos em sequência para reduzir chamadas repetidas à API.
+- A API Open-Meteo já responde a limites de taxa, mas o projeto adiciona proteção extra no cliente.
+- Essas medidas ajudam a evitar uso indevido acidental pela interface do usuário.
 
