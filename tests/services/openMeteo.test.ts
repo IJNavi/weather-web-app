@@ -1,10 +1,18 @@
-import { beforeAll, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchWeatherByCity, normalizeCountry } from '../../src/services/openMeteo';
 
 const fetchMock = vi.fn();
+const storageData = new Map<string, string>();
+const localStorageMock = {
+  getItem: (key: string) => storageData.get(key) ?? null,
+  setItem: (key: string, value: string) => storageData.set(key, value),
+  removeItem: (key: string) => storageData.delete(key),
+  clear: () => storageData.clear()
+};
 
 beforeAll(() => {
   vi.stubGlobal('fetch', fetchMock);
+  vi.stubGlobal('localStorage', localStorageMock);
 });
 
 afterAll(() => {
@@ -13,6 +21,7 @@ afterAll(() => {
 
 beforeEach(() => {
   fetchMock.mockReset();
+  localStorageMock.clear();
 });
 
 describe('fetchWeatherByCity service', () => {
@@ -59,6 +68,106 @@ describe('fetchWeatherByCity service', () => {
     expect(weather.conditionIcon).toBe('☀️');
     expect(weather.description).toBe('Céu limpo');
     expect(weather.localTime).toContain('13/04/2026');
+  });
+
+  it('returns cached weather data for a valid localStorage entry without calling the API', async () => {
+    const cacheKey = 'lisboa||pt';
+    const cached = {
+      weather: {
+        location: 'Lisboa, Portugal',
+        temperature: 20,
+        feelsLike: 20,
+        windSpeed: 4,
+        humidity: 60,
+        localTime: '13/04/2026 12:00',
+        conditionCode: 0,
+        conditionIcon: '☀️',
+        description: 'Céu limpo',
+        city: 'Lisboa',
+        country: 'Portugal',
+        latitude: 38.7223,
+        longitude: -9.1393,
+        timezone: 'Europe/Lisbon'
+      },
+      fetchedAt: Date.now()
+    };
+
+    localStorageMock.setItem('weather-cache-v1', JSON.stringify({ [cacheKey]: cached }));
+
+    const weather = await fetchWeatherByCity({ city: 'Lisboa', country: 'Portugal' });
+
+    expect(weather).toEqual(cached.weather);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('removes expired cache entries and fetches fresh weather data', async () => {
+    const cacheKey = 'lisboa||pt';
+    const staleEntry = {
+      weather: {
+        location: 'Lisboa, Portugal',
+        temperature: 15,
+        feelsLike: 15,
+        windSpeed: 4,
+        humidity: 80,
+        localTime: '13/04/2026 08:00',
+        conditionCode: 1,
+        conditionIcon: '🌥️',
+        description: 'Parcialmente nublado',
+        city: 'Lisboa',
+        country: 'Portugal',
+        latitude: 38.7223,
+        longitude: -9.1393,
+        timezone: 'Europe/Lisbon'
+      },
+      fetchedAt: Date.now() - 1000 * 60 * 60 * 2
+    };
+
+    localStorageMock.setItem('weather-cache-v1', JSON.stringify({ [cacheKey]: staleEntry }));
+
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          results: [
+            {
+              name: 'Lisboa',
+              country: 'Portugal',
+              country_code: 'PT',
+              admin1: 'Lisboa',
+              latitude: 38.7223,
+              longitude: -9.1393,
+              timezone: 'Europe/Lisbon',
+              population: 504718,
+              feature_code: 'PPLC'
+            }
+          ]
+        })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          current_weather: {
+            temperature: 22,
+            windspeed: 5,
+            weathercode: 0,
+            time: '2026-04-13T12:00:00Z'
+          },
+          hourly: {
+            relativehumidity_2m: [55]
+          }
+        })
+      });
+
+    const beforeFetch = Date.now();
+    const weather = await fetchWeatherByCity({ city: 'Lisboa', country: 'Portugal' });
+    const savedCache = JSON.parse(localStorageMock.getItem('weather-cache-v1') || '{}');
+
+    expect(weather.temperature).toBe(22);
+    expect(weather.humidity).toBe(55);
+    expect(fetchMock).toHaveBeenCalled();
+    expect(savedCache[cacheKey]).toBeDefined();
+    expect(savedCache[cacheKey].weather.temperature).toBe(22);
+    expect(savedCache[cacheKey].fetchedAt).toBeGreaterThanOrEqual(beforeFetch);
   });
 
   it('throws an error when the city is not found', async () => {

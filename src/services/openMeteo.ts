@@ -29,6 +29,10 @@ function buildWeatherCacheKey(query: WeatherQuery): string {
   return [city, state, country].join('|');
 }
 
+/**
+ * Carrega o cache persistido do navegador.
+ * Retorna um objeto vazio quando o armazenamento não está disponível.
+ */
 function loadWeatherCache(): Record<string, CachedWeatherEntry> {
   try {
     const stored = localStorage.getItem(WEATHER_CACHE_STORAGE_KEY);
@@ -41,6 +45,9 @@ function loadWeatherCache(): Record<string, CachedWeatherEntry> {
   }
 }
 
+/**
+ * Persiste o cache de clima no localStorage do navegador.
+ */
 function saveWeatherCache(cache: Record<string, CachedWeatherEntry>): void {
   try {
     localStorage.setItem(WEATHER_CACHE_STORAGE_KEY, JSON.stringify(cache));
@@ -67,12 +74,20 @@ function pruneWeatherCache(cache?: Record<string, CachedWeatherEntry>): Record<s
   return validEntries;
 }
 
+/**
+ * Retorna dados de clima do cache local quando disponíveis e válidos.
+ * O cache é limpo automaticamente antes da leitura, removendo entradas com
+ * mais de 1 hora de vida útil.
+ */
 function getCachedWeather(query: WeatherQuery): WeatherData | null {
   const cache = pruneWeatherCache();
   const key = buildWeatherCacheKey(query);
   return cache[key]?.weather ?? null;
 }
 
+/**
+ * Armazena dados de clima no cache local com a hora de fetch atual.
+ */
 function setCachedWeather(query: WeatherQuery, weather: WeatherData): void {
   const cache = pruneWeatherCache();
   const key = buildWeatherCacheKey(query);
@@ -680,6 +695,11 @@ function selectBestMatch<ResultType extends {
 /**
  * Busca o clima atual para uma localização informada pelo usuário.
  *
+ * O resultado é armazenado em cache no navegador (`localStorage`) por até 1 hora.
+ * Se uma consulta idêntica já existir no cache e ainda for válida, o dado
+ * em cache é retornado imediatamente sem fazer nova chamada à API.
+ * Entradas com mais de 1 hora são removidas automaticamente do cache.
+ *
  * @param query - Objeto de consulta que descreve a localização.
  * @param query.city - Nome da cidade obrigatória.
  * @param query.state - Nome ou sigla do estado/província para melhorar a precisão em cidades ambíguas (opcional).
@@ -692,7 +712,7 @@ function selectBestMatch<ResultType extends {
  *   state: 'SP',
  *   country: 'Brasil'
  * });
- * console.log(weather.temperature, weather.condition);
+ * console.log(weather.temperature, weather.description);
  */
 export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherData> {
   // Normalize query for better API matching
