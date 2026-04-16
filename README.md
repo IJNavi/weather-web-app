@@ -222,6 +222,7 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 - O aplicativo bloqueia buscas duplicadas enquanto uma requisição já está em andamento.
 - Ele também evita envios muito rápidos em sequência para reduzir chamadas repetidas à API.
 - A API Open-Meteo já responde a limites de taxa, mas o projeto adiciona proteção extra no cliente.
+- O aplicativo armazena resultados de clima no cache do navegador por até 1 hora para reduzir requisições repetidas.
 - Essas medidas ajudam a evitar uso indevido acidental pela interface do usuário.
 
 ## Licenciamento e uso pretendido

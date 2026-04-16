@@ -13,6 +13,73 @@ export type WeatherQuery = {
   country?: string;
 };
 
+type CachedWeatherEntry = {
+  weather: WeatherData;
+  fetchedAt: number;
+};
+
+const WEATHER_CACHE_STORAGE_KEY = 'weather-cache-v1';
+const WEATHER_CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
+
+function buildWeatherCacheKey(query: WeatherQuery): string {
+  const city = normalizeText(removeDiacritics(query.city));
+  const state = query.state ? normalizeText(removeDiacritics(normalizeState(query.state))) : '';
+  const country = query.country ? normalizeText(removeDiacritics(normalizeCountry(query.country))) : '';
+
+  return [city, state, country].join('|');
+}
+
+function loadWeatherCache(): Record<string, CachedWeatherEntry> {
+  try {
+    const stored = localStorage.getItem(WEATHER_CACHE_STORAGE_KEY);
+    if (!stored) return {};
+
+    const parsed = JSON.parse(stored) as Record<string, CachedWeatherEntry>;
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveWeatherCache(cache: Record<string, CachedWeatherEntry>): void {
+  try {
+    localStorage.setItem(WEATHER_CACHE_STORAGE_KEY, JSON.stringify(cache));
+  } catch {
+    // Ignore storage errors in private mode or when storage is unavailable.
+  }
+}
+
+function pruneWeatherCache(cache?: Record<string, CachedWeatherEntry>): Record<string, CachedWeatherEntry> {
+  const currentCache = cache ?? loadWeatherCache();
+  const now = Date.now();
+  const validEntries: Record<string, CachedWeatherEntry> = {};
+
+  for (const [key, entry] of Object.entries(currentCache)) {
+    if (now - entry.fetchedAt <= WEATHER_CACHE_TTL_MS) {
+      validEntries[key] = entry;
+    }
+  }
+
+  if (Object.keys(validEntries).length !== Object.keys(currentCache).length) {
+    saveWeatherCache(validEntries);
+  }
+
+  return validEntries;
+}
+
+function getCachedWeather(query: WeatherQuery): WeatherData | null {
+  const cache = pruneWeatherCache();
+  const key = buildWeatherCacheKey(query);
+  return cache[key]?.weather ?? null;
+}
+
+function setCachedWeather(query: WeatherQuery, weather: WeatherData): void {
+  const cache = pruneWeatherCache();
+  const key = buildWeatherCacheKey(query);
+  cache[key] = { weather, fetchedAt: Date.now() };
+  saveWeatherCache(cache);
+}
+
 const DEFAULT_FETCH_TIMEOUT_MS = 10000;
 const GEOCODING_URL = import.meta.env.VITE_OPEN_METEO_GEOCODING_URL || 'https://geocoding-api.open-meteo.com/v1/search';
 const WEATHER_URL = import.meta.env.VITE_OPEN_METEO_WEATHER_URL || 'https://api.open-meteo.com/v1/forecast';
@@ -635,6 +702,11 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
     country: query.country ? normalizeCountry(query.country) : undefined,
   };
 
+  const cachedWeather = getCachedWeather(normalizedQuery);
+  if (cachedWeather) {
+    return cachedWeather;
+  }
+
   // Try different translations of the city name, and prefer city+country search terms when available.
   const cityVariants = getCityTranslations(normalizedQuery.city);
   const geocodingNames = buildGeocodingNames(normalizedQuery.city, normalizedQuery.country);
@@ -812,7 +884,7 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
 
   const humidity = weatherData.hourly?.relativehumidity_2m?.[0] ?? 55;
 
-  return {
+  const weatherResult: WeatherData = {
     location: `${location.name}, ${location.country}`,
     temperature: weatherData.current_weather.temperature,
     feelsLike: weatherData.current_weather.temperature,
@@ -835,6 +907,9 @@ export async function fetchWeatherByCity(query: WeatherQuery): Promise<WeatherDa
     longitude: location.longitude,
     timezone: location.timezone
   };
+
+  setCachedWeather(normalizedQuery, weatherResult);
+  return weatherResult;
 }
 
 async function fetchWeatherForecastByLocation(location: {
