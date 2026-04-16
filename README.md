@@ -139,7 +139,7 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - [![LinkedIn](https://img.shields.io/badge/LinkedIn-Ivan%C3%BAlio-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivanj%C3%BAlio)
 - [![GitHub](https://img.shields.io/badge/GitHub-IJNavi-black?logo=github&logoColor=white)](https://github.com/IJNavi)
 
-##Co-Author
+## Co-Author
 
 - [![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
 
@@ -246,6 +246,6 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 - [![GitHub](https://img.shields.io/badge/GitHub-IJNavi-black?logo=github&logoColor=white)](https://github.com/IJNavi)
 - [![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
 
-##Co-Autor
+## Co-Autor
 
 - [![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
