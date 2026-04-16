@@ -1,8 +1,7 @@
 # Weather Web App
 
 > ⚠️ This is a personal project created for a Generation Brasil course. It is not intended for commercial use or production deployment.
->
-> ⚠️ Este é um projeto pessoal criado para um curso da Generation Brasil. Não se destina a uso comercial nem a implantação em produção.
+
 
 ![CI](https://github.com/IJNavi/weather-web-app/actions/workflows/ci.yml/badge.svg)
 
@@ -142,6 +141,8 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 
 # Weather Web App (Portuguese)
 
+> ⚠️ Este é um projeto pessoal criado para um curso da Generation Brasil. Não se destina a uso comercial nem a implantação em produção.
+
 Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 
 [![React](https://img.shields.io/badge/react-18.3.1-blue?logo=react&logoColor=white)](https://react.dev) [![TypeScript](https://img.shields.io/badge/typescript-5.6.2-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org) [![Tailwind CSS](https://img.shields.io/badge/tailwind_css-3.4.5-skyblue?logo=tailwindcss&logoColor=white)](https://tailwindcss.com) [![Vite](https://img.shields.io/badge/vite-5.4.1-yellow?logo=vite&logoColor=white)](https://vitejs.dev) [![Vitest](https://img.shields.io/badge/vitest-4.1.4-purple?logo=vitest&logoColor=white)](https://vitest.dev)
@@ -240,13 +241,4 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 - [![LinkedIn](https://img.shields.io/badge/LinkedIn-Ivan%C3%BAlio-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivanj%C3%BAlio)
 - [![GitHub](https://img.shields.io/badge/GitHub-IJNavi-black?logo=github&logoColor=white)](https://github.com/IJNavi)
 - [![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
-
----
-
-<div align="center">
-Made by **Ivan Barbosa** · 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Ivan%C3%BAlio-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivanj%C3%BAlio) 
-[![GitHub](https://img.shields.io/badge/GitHub-IJNavi-black?logo=github&logoColor=white)](https://github.com/IJNavi) 
-[![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
-</div>
 
