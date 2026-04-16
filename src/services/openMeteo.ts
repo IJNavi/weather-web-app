@@ -14,8 +14,8 @@ export type WeatherQuery = {
 };
 
 const DEFAULT_FETCH_TIMEOUT_MS = 10000;
-const GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
-const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
+const GEOCODING_URL = import.meta.env.VITE_OPEN_METEO_GEOCODING_URL || 'https://geocoding-api.open-meteo.com/v1/search';
+const WEATHER_URL = import.meta.env.VITE_OPEN_METEO_WEATHER_URL || 'https://api.open-meteo.com/v1/forecast';
 const API_TIMEOUT_MESSAGE = 'O tempo de resposta da API expirou. Tente novamente mais tarde.';
 const API_RATE_LIMIT_MESSAGE = 'Limite de requisições da API atingido. Aguarde e tente novamente.';
 const API_SERVER_ERROR_MESSAGE = 'Servidor de clima indisponível no momento. Tente novamente em alguns instantes.';

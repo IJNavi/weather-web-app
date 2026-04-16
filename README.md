@@ -1,5 +1,9 @@
 # Weather Web App
 
+> ⚠️ This is a personal project created for a Generation Brasil course. It is not intended for commercial use or production deployment.
+>
+> ⚠️ Este é um projeto pessoal criado para um curso da Generation Brasil. Não se destina a uso comercial nem a implantação em produção.
+
 ![CI](https://github.com/IJNavi/weather-web-app/actions/workflows/ci.yml/badge.svg)
 
 A simple weather application built with React, TypeScript, and Tailwind CSS.
@@ -24,6 +28,18 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
    npm run dev
    ```
 3. Open your browser at `http://localhost:5173`
+4. (Optional) Create a local environment file for configuration:
+   ```bash
+   touch .env.local
+   ```
+
+   Example values:
+   ```env
+   VITE_OPEN_METEO_GEOCODING_URL=https://geocoding-api.open-meteo.com/v1/search
+   VITE_OPEN_METEO_WEATHER_URL=https://api.open-meteo.com/v1/forecast
+   ```
+
+   `.env.local` is ignored by Git and is the right place for machine-specific settings.
 
 ### Example search
 
@@ -66,6 +82,20 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - The client-side code prevents multiple simultaneous requests and throttles quick repeated searches.
 - The service layer also recognizes API rate-limit responses (`429`) and exposes friendly error messages.
 - These protections do not replace server-side rate limiting, but they reduce accidental or abusive traffic from the browser.
+
+## License and intended use
+
+- This project is a personal exercise built for a course by Generation Brasil.
+- It is not intended for commercial use or production deployment.
+- No monetization, billing, or commercial licensing is expected for this repository.
+- The implementation is provided for learning and demonstration only.
+
+## Author
+
+- **Ivan Barbosa**
+- [![LinkedIn](https://img.shields.io/badge/LinkedIn-Ivan%C3%BAlio-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivanj%C3%BAlio)
+- [![GitHub](https://img.shields.io/badge/GitHub-IJNavi-black?logo=github&logoColor=white)](https://github.com/IJNavi)
+- [![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
 
 ## Visual overview
 
@@ -133,6 +163,18 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
    npm run dev
    ```
 3. Abra o navegador em `http://localhost:5173`
+4. (Opcional) Crie um arquivo `.env.local` para configuração local:
+   ```bash
+   touch .env.local
+   ```
+
+   Exemplo de valores:
+   ```env
+   VITE_OPEN_METEO_GEOCODING_URL=https://geocoding-api.open-meteo.com/v1/search
+   VITE_OPEN_METEO_WEATHER_URL=https://api.open-meteo.com/v1/forecast
+   ```
+
+   O arquivo `.env.local` é ignorado pelo Git e deve ser usado para configurações específicas da máquina.
 
 ## Funcionalidade de busca
 
@@ -181,4 +223,27 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 - Ele também evita envios muito rápidos em sequência para reduzir chamadas repetidas à API.
 - A API Open-Meteo já responde a limites de taxa, mas o projeto adiciona proteção extra no cliente.
 - Essas medidas ajudam a evitar uso indevido acidental pela interface do usuário.
+
+## Licenciamento e uso pretendido
+
+- Este projeto é um exercício pessoal desenvolvido para um curso da Generation Brasil.
+- Não se destina a uso comercial nem a implantação em produção.
+- Não há expectativa de cobrança, monetização ou licença comercial para este repositório.
+- A implementação é fornecida apenas para aprendizado e demonstração.
+
+## Autor
+
+- **Ivan Barbosa**
+- [![LinkedIn](https://img.shields.io/badge/LinkedIn-Ivan%C3%BAlio-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivanj%C3%BAlio)
+- [![GitHub](https://img.shields.io/badge/GitHub-IJNavi-black?logo=github&logoColor=white)](https://github.com/IJNavi)
+- [![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
+
+---
+
+<div align="center">
+Made by **Ivan Barbosa** · 
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Ivan%C3%BAlio-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivanj%C3%BAlio) 
+[![GitHub](https://img.shields.io/badge/GitHub-IJNavi-black?logo=github&logoColor=white)](https://github.com/IJNavi) 
+[![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
+</div>
 
