@@ -133,6 +133,7 @@ A simple weather application built with React, TypeScript, and Tailwind CSS.
 - Test files are located in `tests/`, including component, integration, and service coverage.
 - Current coverage includes:
   - service API error handling
+  - persistent browser cache validation for weather search results
   - integration flows for successful search and error display
   - advanced search utilities and interface behavior
   - component rendering and user interactions
