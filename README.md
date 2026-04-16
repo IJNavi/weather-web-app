@@ -244,7 +244,7 @@ Aplicativo de clima simples usando React, TypeScript e Tailwind CSS.
 - **Ivan Barbosa**
 - [![LinkedIn](https://img.shields.io/badge/LinkedIn-Ivan%C3%BAlio-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivanj%C3%BAlio)
 - [![GitHub](https://img.shields.io/badge/GitHub-IJNavi-black?logo=github&logoColor=white)](https://github.com/IJNavi)
-- [![Copilot](https://img.shields.io/badge/Copilot-GitHub%20Copilot-black?logo=github-copilot&logoColor=white)](https://github.com/features/copilot)
+
 
 ## Co-Autor
 
